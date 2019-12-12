@@ -164,6 +164,9 @@ select id, name, yingyu  from grade where yingyu =90;  --根据成绩=90找到�
 --将两句话合并如下；
 select id, name, yingyu  from grade where yingyu =(select max(yingyu) from grade);
 
+select id,name,yingyu+shuxue+yuwen  from grade where yingyu + shuxue + yuwen >200;
+--等价
+select id,name,yingyu+shuxue+yuwen as total from grade having total  >200;
 
 
 
