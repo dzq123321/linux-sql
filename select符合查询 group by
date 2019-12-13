@@ -1,0 +1,58 @@
+--group by  在select 中使用group by 语句对指定列进行分组查询
+--select column,column... from table group by column
+--如何显示每个部门的平均工资和最高工资    dept  emp  salgrade
+select deptno, avg(sal),max(sal) from emp group by deptno;
+--显示每个部门的每种岗位的平均工资和最低工资
+select deptno ,job,avg(sal),max(sal) from emp group by deptno,job;
+--显示平均工资低于2000的部门和它的平均工资
+--分两步
+--1、统计各个部门的平均工资
+select avg(sal) from emp group by deptno;
+--2、having和group by配合使用，对group by结果进行过滤
+select deptno,avg(sal) as myavg from emp group by deptno having myavg <2000;
+--复合查询
+--查询工资高于500或岗位为MANAGER的雇员，同时还要满足他们的姓名首字母为大写的J
+select empno from emp where (sal>500 or job='MANAGER') and name='J%';
+--按照部门号升序而雇员的工资降序排序
+select *from emp order by deptno ,empno desc;
+--使用年薪进行降序排序
+select emane ,sal*12+ifnull(comm,0) as '年薪' from emp order by '年薪' desc;
+--显示工资最高的员工的名字和工作岗位
+--先找到最高的工资
+select max(sal) from emp;
+select ename,job from emp where  sal= select max(sal) from emp;
+
+--或者  估计不行
+--select ename,job ,max(sal) as maxsal where  sal= maxsal; 
+--或者
+--select ename,job ,max(sal) as maxsal from emp having sal=maxsal;
+
+--显示工资高于平均工资的员工信息
+select * from emp where sal> select(avg(sal) from emp);
+--显示每个部门的最高工资和最低工资
+--select deptno ,format (avg(sal),2),max(sal) from emp grop deptno;
+
+--显示平均工资低于2000的部门号和他的平均工资
+--select depeno ,avg(sal)  from emp where select avg(sal) <2000;
+select depeno ,avg(sal) as avg_sal from emp group by deptno having avg_sal<2000;
+--显示每种岗位的雇员数量，平均工资
+--select job ,count(*) ,format (avg(sal),2)from emp group by job;
+
+
+--多表联查
+--显示雇员名、雇员工资以及所在部门的名字因为上面的数据来自EMP和DEPT表，因此要联合查询其实我们只要emp表中的deptno = dept表中的deptno字段的记录
+select emp.emane,emp.sal,dept.dname from emp,dept where emp.deptno=dept.deptno;
+--显示部门号为10的部门名，员工名和工资
+select dept.dname,emp.ename,emp.sal from emp,dept where emp.deptno=10 and dept.deptno=10;
+--显示各个员工的姓名，工资，及工资级别
+--select emp.dname,emp.sal,salgrade.grade from salgrade,emp where emp.sal between losal and hisal;
+--自链接 自己连接自己
+--显示员工FORD的上级领导的编号和姓名（mgr是员工领导的编号--empno）
+select empno,ename from emp where emp.empno = (select mgr from emp where ename='FORD');
+
+
+
+tar -jxvf gcc -linaro-arm-linux-gnueabihf-4.9-2014.07_linux.tar.bz -C /opt
+export PATH=$PATH:/opt/gcc-linaro-arm-linux-gnueabihf-4.9-2014.07_linux/bin
+apt-get install nfs-kernel server nfs-common protmap
+arm-linux-gnueabihf-gcc -v
