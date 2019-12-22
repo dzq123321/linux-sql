@@ -1,0 +1,97 @@
+--数据库的varchar()
+--Mysql记录行数据是有限的。大小为64k,即65535个字节，而varchar要用1-2字节来存储字段长度，小于255的1字节，大于255的2字节。
+--Mysql 5.0后,英文字符固定都是一个字节，汉字字符根据编码方式占不同字节，Utf-8占3个字节，gbk占了2个字节。
+--MySQL5.0.3之前varchar(n)这里的n表示字节数
+--MySQL5.0.3之后varchar(n)这里的n表示字符数，比如varchar（200），不管是英文还是中文都可以存放200个
+--数据库的备份
+mysqldump -u root -B scotts > mytest  --mystest是在linux环境下建立的文件
+mysql > source /home/test/mysql/mytest;
+--复合查询  
+show full columns from dept;
+show full columns from emp;
+show full columns from salgrade;
+--查询工资高于500或岗位为MANAGER的雇员，同时还要满足他们的姓名首字母为大写的J
+select ename,job,sal from emp where (sal >500 or job ='MANAGER') and ename like 'J%';
+--按照部门号升序而雇员的工资降序排序
+select * from emp order by deptno,sal Desc;
+--使用年薪进行降序排序  ifnull(comm,0) 如果comm不为null则=comm 如果为null则等于0  null做任何运算都是null
+select ename,sal*12+ifnull(comm,0) as yearmoney from emp order by yearmoney desc;
+
+--显示工资最高的员工的名字和工作岗位
+--排序
+select ename ,job from emp order by sal desc limit 1;
+--子查询
+select ename ,job from emp where sal=(select max(sal)from emp);
+--多表联查  自连接
+select t1.ename,t1.job from emp as t1,(select max(sal) as maxsal from emp )as t2 where t1.sal=t2.maxsal;
+--显示工资高于平均工资的员工信息
+
+select * from emp where sal > (select avg(sal)from emp);
+select  t1.empno,t1.ename, t1.job from emp as t1,(select avg(sal) as avgsal from emp ) as t2 where t1.sal>t2.avgsal;
+
+--显示每个部门的平均工资和最高工资     format是指定保留几位有效数字，format后就不能在与其他进行比较，因为format之后转换为字符串了
+select deptno,format(max(sal),2) as Maxsal,format(avg(sal),2) as Avgsal from emp group by deptno;
+
+--显示平均工资低于2000的部门号和它的平均工资  group by 后可以跟聚合函数
+select deptno,avg(sal) as avgsal  from emp  group by deptno having avgsal>2000;	
+--把每个部门的平均工资算出来做一个表，多表联查
+--select t2.deptno,t2.avgsal from emp as t1,(select deptno,avg(sal) as avgsal from emp group by deptno) as t2 where t1.deptno =t2.deptno and t2.avgsal >2000;
+--这段程序结果是对的但会出现很多重复项，这是因为对t1的每一项都进行了配对
+select t2.deptno,t2.avgsal from (select 2000 as cmp) as t1,(select deptno,avg(sal) as avgsal from emp group by deptno) as t2 where t2. avgsal>cmp;
+
+--显示每种岗位的雇员总数，平均工资
+select job, count(empno) ,avg(sal)from emp group by job;
+
+--显示雇员名、雇员工资以及所在部门的名字因为上面的数据来自EMP和DEPT表，因此要联合查询
+select emp.ename,emp.sal,dept.dname from emp,dept where emp.deptno=dept.deptno;
+--显示部门号为10的部门名，员工名和工资
+select dept.dname,emp.ename,emp.sal from dept,emp where emp.deptno=dept.deptno and emp.deptno=10;
+
+--显示各个员工的姓名，工资，及工资级别
+select emp.ename,emp.sal ,salgrade.grade from salgrade,emp where emp.sal between losal and hisal;
+
+--显示员工FORD的上级领导的编号和姓名
+select empno,ename from emp where empno =(select mgr from emp where ename = 'FORD');
+select t1.empno,t1.ename from emp as t1,emp as t2 where t1.empno=t2.mgr and t2.ename = 'FORD';
+
+--多行子查询   in关键字；查询和10号部门的工作相同的雇员的名字，岗位，工资，部门号，但是不包含10自己的
+select ename,job,sal,deptno from emp where job in (select distinct job from emp where deptno=10) and deptno <>10;
+
+--all关键字；显示工资比部门30的所有员工的工资高的员工的姓名、工资和部门号   (意思就是工资比部门30最高的工资还高的人的信息)
+select ename,job,sal,deptno from emp where sal > all(select sal from emp where deptno=30);
+select ename,job,sal,deptno from emp,(select max(sal) as maxsal from emp where deptno =30)as t2  where sal > maxsal;
+
+--any关键字；显示工资比部门30的任意员工的工资高的员工的姓名、工资和部门号
+select ename,job,sal,deptno from emp where sal > any(select sal from emp where deptno=30);
+-- 多列子查询 查询和SMITH的部门和岗位完全相同的所有雇员，不含SMITH本人
+select ename from emp where (deptno,job) = (select deptno,job from emp where ename = 'SMITH') and ename <> 'SMITH';
+
+--在from子句中使用子查询  
+--显示高于自己部门平均工资的员工的姓名、部门、工资、平均工资
+select ename,emp.deptno,sal, Avgsal from emp,(select avg(sal) as Avgsal,deptno from emp group by deptno) as t1 where (emp.sal>t1.Avgsal) and (emp.deptno = t1.deptno);
+--查找每个部门工资最高的人的姓名、工资、部门、最高工资
+select ename,sal,deptno,maxsal from emp ,(select max(sal) as maxsal,deptno as dt from emp group by deptno) as t1 where (emp.deptno = t1.dt) and emp.sal=maxsal ;
+--显示每个部门的信息（部门名，编号，地址）和人员数量
+select dept.dname,dept.deptno,dept.loc,count(*)as num from dept,emp where dept.deptno=emp.deptno group by deptno;
+select dname,deptno,loc,num from dept,(select count(ename) as num,deptno as dt from emp group by deptno) as t1 where (dept.deptno=t1.dt);
+
+-- 合并查询 为了合并多个select的执行结果，可以使用集合操作符 union (去重)，union all（不去重）
+--将工资大于2500或职位是MANAGER的人找出来	
+select ename,job,sal,deptno from emp where sal >2500 union select ename,job,sal,deptno from emp where job="MANAGER";
+
+select ename,job,sal,deptno from emp where sal >2500 or job="MANAGER";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
