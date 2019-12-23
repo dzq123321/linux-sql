@@ -1,0 +1,127 @@
+--表的内连和外连
+--内连实际上就是之前的select多表联查
+create table stu (id int, name varchar(30));-- 学生表
+insert into stu values(1,'jack'),(2,'tom'),(3,'kity'),(4,'nono');
+create table exam (id int, grade int); -- 成绩表 
+insert into exam values(1, 56),(2,76),(11, 8);
+
+--左外连接
+--select 字段名 from 表名1 left join 表名2 on 连接条件
+--当左表和右表没有匹配时，也会显示左表的数据
+select * from stu left join exam on stu.id=exam.id ;   --完全显示stu 
+select * from stu ,exam where stu.id=exam.id ;  --只会显示jack tom这两个
+--右外连接   
+select * from stu right join exam on stu.id=exam.id ;--完全显示exam
+
+--列出部门名称和这些部门的员工信息，同时列出没有员工的部门
+select dept.dname,emp.* from dept left join emp on dept.deptno =emp.deptno;
+select dept.dname,emp.* from  emp right join dept on dept.deptno =emp.deptno;
+
+--索引
+select * from emp where empno=998877;
+alter table emp add index(empno);  --alter 修改表
+--主键索引 其实就是加入主键
+create table user1(
+id int ,
+name varchar (30),
+primary key(id)
+);
+alter table user1 drop primary key ;
+alter table user1 add primary key(id);
+show full columns from user1;
+--唯一键索引
+create table user2(
+id int primary key,
+name varchar(20) unique,
+address varchar(20) unique
+);
+alter table user2 drop index address;
+alter table user2 add index (address);
+show full columns from user2;
+
+--普通索引  当某列会存在重复值时，应使用普通索引
+alter table user2 drop index address;
+alter table user2 add index (address);
+--全文索引 只有mySIAM 中有，且只支持英文，innoDB没有
+--索引创建规则
+--不经常频繁被检索的不应创建索引
+--比较频繁被检索的应创建索引   同时需注意唯一性差的和经常需要修改的列不适合创建索引
+
+--mysql中的事务   只有innoDB中有
+create table account(
+id int primary key,
+name varchar(50) not null default "",
+balance decimal(10,2) not null default 0.0
+);
+start transaction;
+savepoint aa;
+insert into account values (1,'张三',10);
+savepoint bb;
+insert into account values (2,'张四',20);
+savepoint cc;
+insert into account values (3,'张五',30);
+select *from account;
+rollback to bb;
+
+select *from account;
+commit;  --提交
+
+--设置事务隔离级别
+--读未提交 读已提交  可重复读  可串行化     可串行化会在客户端a对事物进行操作时进行上锁，客户b只能进行等待直到数据库释放了锁或超时
+set session transaction isolation level read uncommitted;
+--查看当前隔离级别
+select @@tx_isolation;
+--事物的ACID特性（一个圆池 ）  一致性  隔离性  原子性  持久性
+--原子性  一致性 隔离性  持久性  
+
+--视图  修改视图对基表有影响  修改基表对视图有影响
+select ename,dname from emp,dept where emp.deptno=dept.deptno;
+create view other as select ename,dname from emp,dept where emp.deptno=dept.deptno;
+select *from other;
+update other set dname='sales' where ename='scott';
+
+select *from other;
+
+select dname,emp.* from emp ,dept where ename ='scott' and emp.deptno=dept.deptno;
+
+--删除视图
+drop view other;
+
+--用户管理
+select host,user,authentication_string from test;
+
+create user 'xiaodu'@'localhost' identified by '123456';
+drop user 'xiaodu'@'localhost';
+
+--函数
+select current_date();
+select current_time();
+select current_timestamp();
+select now();
+select date_add('2019-12-23',interval 10 day);
+select date_add('2017-10-28', interval 10 day);
+select date_add(now(),interval 30 hour);
+
+
+
+
+select charset(ename) from emp;
+select replace(ename,'S','s'),ename from emp;
+--截取emp表中ename字段的第二个到第三个字符
+select substring (ename,2,2),ename from emp;
+--以首字母小写的方式显示所有员工的名字
+select concat(lcase( substring(ename,1,1)),substring(ename,2) ), ename from emp;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
