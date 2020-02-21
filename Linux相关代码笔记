@@ -1,0 +1,140 @@
+//进程相关代码  查看进程脚本
+while :; do ps ajx | head -n1 && ps ajx  | grep t2 |grep -v grep; sleep 1; echo "########"; done
+//查看上个操作的退出码
+echo $?
+//查看路径‘
+which ls
+//fork 之后已将两次返回
+ #include<stdio.h>
+ #include<unistd.h>
+ #include<stdlib.h>
+ int g_val=100;
+ int main()
+   {
+   pid_t ret=fork();
+   if(ret==0){
+	   sleep(2);
+	   g_val=200;
+   printf("child[%d]:g_val: %d: %p\n",getpid(),g_val,&g_val);
+   }
+   else if(ret >0){
+	   sleep(4);
+	   printf("father[%d]:g_val: %d: %p\n",getpid(),g_val,&g_val);
+   }
+   else{
+	   printf("error\n");
+   }
+   sleep(3);
+   }
+   //运行结果
+   //child[31016]:g_val: 200: 0x601054
+//father[31015]:g_val: 100: 0x601054
+//fork之后创建了两个进程相互独立，虽然是res有一个地址但这是虚拟地址，实际上是两个res,映射到物理内存时时不一样的
+//wait的使用   待模拟
+  #include<stdio.h>
+#include<sys/wait.h>
+#include<sys/types.h>
+int main()
+{
+    pid_t pid;
+    if((pid=fork())==-1)
+        printf("fork失败\n");
+    if(pid == 0 )//child
+    {
+        sleep(15);
+        int a=1/0;
+        exit(10);
+    }
+    else{
+        int st;
+        int ret=wait(&st);
+        if(ret>0)  //ret>0,说明wait成功，查看信号码和退出码
+        {
+                printf("sing code:%d\n  child exit code: %d\n",st&0x7f ,(st>>8)&0xff);
+        }
+        else
+        {
+            printf("wait failed");
+        }
+    }
+}
+//wait pid_t()
+
+  1 #include<stdio.h>
+  2 #include<unistd.h>
+  3 #include<sys/wait.h>
+  4 #include<sys/types.h>
+  5 int main()
+  6 {       
+  7     pid_t pid;
+  8     if((pid=fork())==-1)
+  9         printf("fork失败\n");
+ 10     if(pid == 0 )//child
+ 11     {   
+ 12         int i=0;
+ 13         while(i<500：){
+ 14             printf("child running.pid =%d\n ",getpid());
+ 15             sleep(1);
+ 16             i++;
+ 17         }
+ 18         exit(10);
+ 19     }   
+ 20     else{
+ 21         int st;
+            pid_t ret;
+ 22         while(1){
+ 23             ret =waitpid(pid,&st,WNOHANG);   //ret要现在外部定义，不然会报错
+ 24             if(ret == 0){
+ 25                 printf("father do other thing ..\n");
+ 26                 sleep(1);
+ 27             }
+                  else
+	                  break;
+ 28         }
+ 29         if(ret > 0)
+ 30         {
+ 31            if(WIFEXITED(st)){
+ 32               printf("正常退出，exid code: %d\n",WEXITSTATUS(st));
+ 33           }
+ 34           else{
+ 35     
+ 36                printf("sing code:%d\n  child exit code: %d\n",st&0x7f ,(st>>8)&0xff);
+ 37           }
+ 38         }
+ 39         else
+ 40         {
+ 41             printf("wait failed");
+ 42         }
+ 43     }
+ 44 }     
+//execl  进程替换
+//这些函数如果调用成功则加载新的程序从启动代码开始执行,不再返回。
+//如果调用出错则返回-1
+//所以exec函数只有出错的返回值而没有成功的返回值。
+ #include<stdio.h>
+  2  #include<unistd.h>
+  3  #include<stdlib.h>
+  4 int main(){
+  5     execl("/usr/bin/ls","ls","-l",NULL);  //不会执行下面步骤                                                                                                                                                                   
+  6     printf("hello \n");   
+  7     exit(23);
+  8 }    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
