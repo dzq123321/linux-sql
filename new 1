@@ -1,0 +1,146 @@
+//1、 echo $? 查看上一个进程的退出码
+//2、  which ls   查看ls命令的位置
+
+// 视图模式  ctrl +v   选中视图块， 点击A后就可添加文本 
+// waitpid(id,status,WNOHANG) / fork() ->  
+#include <stdio.h> 
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+int main()
+{
+    pid_t pid;
+    pid = fork();
+    if(pid < 0){
+    printf("%s fork error\n",__FUNCTION__);
+    return 1;
+    }
+    else if( pid == 0 ){ //child
+       printf("child is run, pid is : %d\n",getpid());
+       sleep(5);
+        exit(1);
+    } 
+	else{
+      int status = 0;
+      pid_t ret = 0;
+    while(1)
+    {
+        ret = waitpid(-1, &status, WNOHANG);//加WNOHANG是非阻塞式等待，如果带三个参数为0，则是阻塞式等待
+        if( ret == 0 ){   //返回0，说明子进程没有运行完，父进程阻塞式等待，父进程循环访问子进程是否完成
+        printf("child do other thing\n");
+          }
+		  else
+			  break;  //如果非·0，退出程序。则说明waitpid完成，>0 说明返回ret=子进程id,waitpid成功，ret=-1,waipid失败
+    }
+	if(ret >0)
+	{
+		if(WIFEXITED(status)){
+			cout<<"child 退出正常,exit code is : "<<WEXITSTATUS(status)<<endl;
+		}else{
+			cout<<"child 退出异常 sig code: "<<status&0x7f<<endl;
+		}
+	}
+	else{
+    printf("wait child failed, return.\n");
+     return 1;
+    }
+   return 0;
+}
+//进程  execle 
+#include<iostream>
+#include<stdlib.h>
+using namespace std;
+int main(){
+    cout<<"env value: "<<getenv("MY_ENV_VALUE")<<endl;
+    cout<<"hello world"<<endl;
+    return 0;
+}
+
+//---------------------------------
+#include<iostream>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<stdlib.h>
+using namespace std;
+int main()
+{
+    pid_t id=fork();
+    if(id== 0){
+        sleep(3);
+        char *const my_env[]= {"MY_ENV_VALUE=123456"};
+        execle("/home/test/Linux/t","t",NULL,my_env);      //带入环境变量
+        exit(1);
+    }
+    else if(id > 0){
+        cout<< "father waiting"<<endl;
+        pid_t ret = waitpid(id,NULL,0);
+        cout << "father wait done"<<endl;
+    }
+    else{
+
+    }
+    return 0;
+}
+
+------------利用进程替换编写简单的shell
+#include<iostream>
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<stdlib.h>
+using namespace std;
+#define MAX 1024
+int main()
+{
+
+    char *myargv[MAX];
+    char cmd[MAX];
+    int i=0;
+    while(1){
+        cout<<"[xiaodu@HOSTNAME shell]#  ";
+        gets(cmd);
+        pid_t id =fork();
+        if(id == 0){
+            myargv[i] =cmd;
+            char *p=cmd;
+            while(*p){
+                if(isspace(*p)){
+                    *p='\0';
+                        p++;
+                    i++;
+                    myargv[i] =p;
+                    continue;
+                }
+                p++;
+            }
+            myargv[++i] =NULL;
+            execvp(myargv[0],myargv);
+        }
+        else if(id >0){
+            waitpid(id,NULL,0);
+        }
+        else{
+
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
