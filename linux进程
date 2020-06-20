@@ -3,11 +3,17 @@
 //3 :%s/foo/bar/g   vim进行替换 foo->bar /g->全局
 // 视图模式  ctrl +v   选中视图块， 点击A后就可添加文本 
 // waitpid(id,status,WNOHANG) / fork() ->  
-#include <stdio.h> 
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <sys/types.h>
+
+```
+
+​```
+# include <stdio.h>
+# include <unistd.h>
+# include <stdlib.h>
+# include <sys/wait.h>
+# include <sys/types.h>
+​```
+
 int main()
 {
     pid_t pid;
@@ -47,22 +53,29 @@ int main()
     }
    return 0;
 }
+'''
+```
+
 //进程  execle 
-#include<iostream>
-#include<stdlib.h>
+'''
+```
+# include<iostream>
+
+# include<stdlib.h>
+
 using namespace std;
 int main(){
     cout<<"env value: "<<getenv("MY_ENV_VALUE")<<endl;
     cout<<"hello world"<<endl;
     return 0;
 }
-
 //---------------------------------
-#include<iostream>
-#include<unistd.h>
-#include<sys/types.h>
-#include<sys/wait.h>
-#include<stdlib.h>
+
+# include<iostream>
+# include<unistd.h>
+# include<sys/types.h>
+# include<sys/wait.h>
+# include<stdlib.h>
 using namespace std;
 int main()
 {
@@ -80,59 +93,71 @@ int main()
     }
     else{
 
-    }
-    return 0;
+​```
 }
+return 0;
+​```
 
+}
+'''
+'''
 ------------利用进程替换编写简单的shell
-#include<iostream>
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/types.h>
-#include<sys/wait.h>
-#include<stdlib.h>
+
+# include<iostream>
+# include<stdio.h>
+# include<unistd.h>
+# include<sys/types.h>
+# include<sys/wait.h>
+# include<stdlib.h>
 using namespace std;
-#define MAX 1024
+# define MAX 1024
+
 int main()
 {
 
-    char *myargv[MAX];
-    char cmd[MAX];
-    int i=0;
-    while(1){
-        cout<<"[xiaodu@HOSTNAME shell]#  ";
-        gets(cmd);
-        pid_t id =fork();
-        if(id == 0){
-            myargv[i] =cmd;
-            char *p=cmd;
-            while(*p){
-                if(isspace(*p)){
-                    *p='\0';
-                        p++;
-                    i++;
-                    myargv[i] =p;
-                    continue;
-                }
-                p++;
+​```
+char *myargv[MAX];
+char cmd[MAX];
+int i=0;
+while(1){
+    cout<<"[xiaodu@HOSTNAME shell]#  ";
+    gets(cmd);
+    pid_t id =fork();
+    if(id == 0){
+        myargv[i] =cmd;
+        char *p=cmd;
+        while(*p){
+            if(isspace(*p)){
+                *p='\0';
+                    p++;
+                i++;
+                myargv[i] =p;
+                continue;
             }
-            myargv[++i] =NULL;
-            execvp(myargv[0],myargv);
+            p++;
         }
-        else if(id >0){
-            waitpid(id,NULL,0);
-        }
-        else{
-
-        }
+        myargv[++i] =NULL;
+        execvp(myargv[0],myargv);
     }
-    return 0;
+    else if(id >0){
+        waitpid(id,NULL,0);
+    }
+    else{
+
+    }
+}
+return 0;
+​```
+
 }
 
 // ssize_t 可以理解为有符号的size_t,而size_t在32位下是	unsigned int(4字节)   64位是unsigned long(8字节)
 ///---------------------------将信息输出到显示器上
-#include<stdio.h>
-#include<string.h>
+
+# include<stdio.h>
+
+# include<string.h>
+
 int main(){
 	const char *msg="hello fewrite\n";  
 	fwrite(msg,strlen(msg),1,stdout);   //1
@@ -142,11 +167,17 @@ int main(){
 	return 0;
 }
 ----再加一个   //系统调用的write open  read  
-#include<string.h>
-#include<unistd.h>
-#include<sys/types.h>
-#include<sys/stat.h>
-#include<fcntl.h>
+
+# include<string.h>
+
+# include<unistd.h>
+
+# include<sys/types.h>
+
+# include<sys/stat.h>
+
+# include<fcntl.h>
+
 int main(){
    umask(0);
     int fd=open("myfile",O_RDWR);
@@ -173,8 +204,9 @@ int main(){
    // }
     close(fd);
     return 0;
-}
------------------------------------------
+
+## }
+
 int main(){    //从标准输入中读取文件然后打印到标准输出和标准错误中
     char buf[1024];
     ssize_t s=read(0,buf,sizeof(buf));  //0标准输入 1标准输出 2标注错误
@@ -184,8 +216,9 @@ int main(){    //从标准输入中读取文件然后打印到标准输出和标
         write(2,buf,strlen(buf));
     }
 	return 0;
-}
--------------------------------
+
+## }
+
 int main(){
     close(1);
     int fd=open("myfile",O_WRONLY|O_CREAT);
@@ -193,6 +226,7 @@ int main(){
     fflush(stdout);
     close(fd);    //fflush+close   = fclose =去掉fflush+close   缓冲输出
 }
+'''
 //程序结束会自动刷新缓冲区，close会关闭文件描述符无法刷新，所以要加fflush,或者两者都不要/或者fclose代表只关闭文件指针，所以可以刷新缓冲区
 哪些情况下会刷新输入缓冲区？
 1：输入缓冲区满的时候。
@@ -213,6 +247,9 @@ int main(){
 //umask 0001 去掉建立文件的other的可执行权限    umask 0002 去掉建立文件的other的写权限  
 第一个0代表sgid无关
 第2个0代表去掉拥有者的什么权限  例如umask 0500  去掉拥有者的读和可执行权限   查看文件拥有者权限 -w- 只有写权限
+```
+
+
 第3个0代表去掉所other的什么权限   同上
 ---------------------------------------
 kill 命令
